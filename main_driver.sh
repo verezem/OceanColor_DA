@@ -126,11 +126,6 @@ for ii in {01..20}; do
     cd /scratch/ulg/mast/pverezem/nemo4.2.0/cfgs/BSFS_2W/ALL2017_$ii || exit
     
     echo "Starting post-processing in directory ALL2017_$ii"
-
-    #sed -i -e "s|<RSTID>|${rstid}|g" "nam_rebuild"
-    #sed -i -e "s|<RSTID>|${rstid}|g" "nam_rebuild_sto"
-    #sed -i -e "s|<RSTID>|${rstid}|g" "nam_rebuild_trc"
-    #sed -i -e "s|<RSTID>|${rstid}|g" "nam_rebuild_ben" # actually we have to do it once !!!!
     
     # List of file types to process
     file_types=("sto" "trc" "ben" "")  # "" is for no suffix
@@ -197,11 +192,6 @@ echo "Starting to process reference run..."
 
 # ------------- Recombine reference experiment data too ----------------
 cd /scratch/ulg/mast/pverezem/nemo4.2.0/cfgs/BSFS_2W/REF2017/
-
-#sed -i -e "s|19872|00${rstid}|g" "nam_rebuild"
-#sed -i -e "s|19872|00${rstid}|g" "nam_rebuild_sto"
-#sed -i -e "s|19872|00${rstid}|g" "nam_rebuild_trc"
-#sed -i -e "s|19872|00${rstid}|g" "nam_rebuild_ben" # actually we have to do it once !!!!
 
 ./rebuild_nemo.exe nam_rebuild
 ./rebuild_nemo.exe nam_rebuild_trc
@@ -316,19 +306,6 @@ for ii in {01..20} ; do
 done
 
 # ------------------------------------------------------------------------
-# Set up the namelist
-#for ii in {01..20} ; do
-#        cd ALL2017_${ii}
-#        cp namelist_cfg_main namelist_cfg
-#        sed -i -e "s|<RSTID>|${rstid}|g" "namelist_cfg"
-#        cd ../
-#done
-#
-#cd ./REF2017
-#cp namelist_cfg_main namelist_cfg
-#sed -i -e "s|<RSTID>|${rstid}|g" "namelist_cfg"
-#cd ../
-
 # We are ready to run the model again! 
 echo "We are ready to run the model again!"
 
