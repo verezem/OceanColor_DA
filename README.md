@@ -26,7 +26,7 @@
 
    If this is **not your first run**, clear previous outputs by running:
    ```bash
-   rm -r ./analysis ./analysis_restarts ./reflectances
+   rm -r ./analysis/*.nc ./analysis_restarts/*.nc ./reflectances/*.nc 
    ```
 
 3. **(Optional) Initialize from reference state:**
@@ -45,17 +45,67 @@
 
 ---
 
-## 🔧 System Requirements
+## 🧰 System Requirements
 
-### Software Setup
+OceanColor_DA requires a combination of compiled models and Python tools. Below is a summary of the essential components for running the full workflow.
 
-- **NEMO 4.2 + BAMHBI + RADTRANS** (compiled in `releases/2020b`)
-- **OAK** assimilation toolkit
-- **Python + xarray + NCO/CDO** tools (provided by `releases/2023b`)
+### 🔧 Compilers and MPI
 
-> 📌 Module setup:
-> - Load `releases/2023b` for preprocessing and OAK-related tasks
-> - `releases/2020b` is loaded automatically within SBATCH jobs for NEMO execution
+- **MPI-enabled Fortran compiler** – for NEMO and OAK  
+  _(e.g., `mpif90`, `gfortran`, `ifort`)_
+
+- **MPI-enabled C compiler** – for C-based dependencies  
+  _(e.g., `mpicc`)_
+
+### 📦 Libraries and Tools
+
+- **NetCDF-Fortran** ≥ 4.5  
+- **NetCDF-C** and **HDF5** (automatically pulled with NetCDF)
+- **SuiteSparse** – sparse matrix solvers required by OAK
+- **Boost** ≥ 1.74 – utilities for OAK or NEMO modules
+- **Perl** – scripting support in model components
+- **CDO** – for NetCDF field operations
+- **NCO** – used in NetCDF data manipulation and metadata editing
+
+### 🐍 Python Dependencies
+
+The Python-based postprocessing and diagnostics require:
+
+```txt
+xarray
+numpy
+pandas
+netCDF4
+glob2
+matplotlib
+```
+
+You can install these with:
+
+```bash
+pip install -r requirements.txt
+```
+
+Or create a `conda` environment:
+
+```bash
+conda create -n oceancolor_da python=3.10 xarray numpy pandas netCDF4 glob2 matplotlib
+```
+
+### 📌 Example Module Setup (ULg NIC5 system)
+
+```bash
+module load releases/2020b
+module load netCDF-Fortran/4.5.3-gompi-2020b
+module load SuiteSparse
+module load Perl/5.32.0-GCCcore-10.2.0
+module load Boost/1.74.0-GCC-10.2.0
+module load CDO
+
+export FC=mpif90
+export F77=mpif90
+export CC=mpicc
+```
 
 ---
 
@@ -63,9 +113,9 @@
 
 - **Check the ensemble state for each day:**
   ```bash
-  tail -f ./current_day/assim_date.log-000XX
+  tail -f ./current_day/assim_<date>.log-000XX
   ```
-  (where `000XX` corresponds to the ensemble member index)
+  (where `000XX` corresponds to the core ID)
 
 - **Track the main workflow:**
   ```bash
