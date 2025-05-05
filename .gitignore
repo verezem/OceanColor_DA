@@ -1,0 +1,8 @@
+*.nc
+*.log
+log.*
+analysis/
+analysis_restarts/
+reflectances/
+current_day/
+store/
