@@ -57,6 +57,15 @@ OceanColor_DA requires a combination of compiled models and Python tools. Below 
 - **MPI-enabled C compiler** – for C-based dependencies  
   _(e.g., `mpicc`)_
 
+### 🌿 OAK Toolkit
+
+OceanColor_DA relies on the [OAK toolkit](https://github.com/gher-uliege/OAK) for ensemble data assimilation.
+
+Please refer to the [official OAK GitHub repository](https://github.com/gher-uliege/OAK) for installation instructions, documentation, and source code.
+
+> 📦 Note: You will need to compile OAK manually and ensure it is available in your `$PATH` or properly referenced in your scripts.
+
+
 ### 📦 Libraries and Tools
 
 - **NetCDF-Fortran** ≥ 4.5  
