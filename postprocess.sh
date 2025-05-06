@@ -30,7 +30,7 @@ rm yo_* xf_*
 cd ../
 
 echo 'Start mixing the analysis to restarts'
-python /scratch/ulg/mast/pverezem/DEV/programs/analysis_to_restarts.py /scratch/ulg/mast/pverezem/DA_online/ $date
+python /scratch/ulg/mast/pverezem/DA_online/py_proc/analysis_to_restarts.py /scratch/ulg/mast/pverezem/DA_online/ $date
 
 # ------------------------------------------------------------------------
 # Now we put analysed values back to restarts

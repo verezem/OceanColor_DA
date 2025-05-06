@@ -27,7 +27,7 @@ rm -rf ./*${y}*.nc *.tmp *.swp slurm* assim.${y}${m}* *log*
 
 echo "Get reference experiment data as observations"
 cp ../reflectances/REF_y${y}m${m}d${d}.nc ./REF_y${y}m${m}d${d}.nc
-python /scratch/ulg/mast/pverezem/DEV/programs/online_ref_fillval.py $date ./
+python /scratch/ulg/mast/pverezem/DA_online/py_proc/online_ref_fillval.py $date ./
 ncatted -a _FillValue,,o,f,-999 REF_y${y}m${m}d${d}_refl.nc
 
 mv REF_y${y}m${m}d${d}_refl.nc REF_y${y}m${m}d${d}.nc
@@ -41,8 +41,8 @@ cp ../forecast_restarts/PC0??_y${y}m${m}d${d}.nc ./
 cp ../reflectances/C0??_y${y}m${m}d${d}.nc ./
 
 echo "Change fill value with python online_model_fillval.py"
-python /scratch/ulg/mast/pverezem/DEV/programs/online_ptrc_fillval.py ./ ${date}
-python /scratch/ulg/mast/pverezem/DEV/programs/online_model_fillval.py ./ ${date}
+python /scratch/ulg/mast/pverezem/DA_online/py_proc/online_ptrc_fillval.py ./ ${date}
+python /scratch/ulg/mast/pverezem/DA_online/py_proc/online_model_fillval.py ./ ${date}
 
 for num in $(eval echo {01..$size}); do
     ncatted -a _FillValue,,o,f,-999 PC0${num}_y${y}m${m}d${d}_fill.nc
