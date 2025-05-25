@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # === User configuration ===
-start_date="20160322"
+start_date="20160104"
 end_date="20160431"
 
 ASSIM_FREQ=3              # Assimilation every N days

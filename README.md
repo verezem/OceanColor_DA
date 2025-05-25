@@ -16,6 +16,28 @@
 
 ---
 
+## 🔄 What the Package Does
+
+This package automates the workflow of ocean color data assimilation using an ensemble forecasting system. The following components perform key stages in the assimilation loop:
+
+- **`submit_ensemble.sh`**  
+  Automatically sets the correct restart ID and simulation length based on your `submit_year.sh` setup. It modifies the relevant NEMO configuration files (`namelists`, `job.sh`, and `rebuild_job.sh`), then submits SLURM jobs for all ensemble members and the deterministic reference run. Once all jobs complete, it reports successful execution.
+
+- **`process_and_store.sh`**  
+  Rebuilds ensemble restart files and organizes outputs into the correct folders, preparing the model state for assimilation.
+
+- **`preprocess_and_assimilate.sh`**  
+  Updates assimilation-specific namelists for the given forecast date, converts data to use OAK-compatible `_FillValue` conventions, and submits the data assimilation job — waiting for completion before proceeding.
+
+- **`postprocess.sh`**  
+  Integrates the assimilated fields back into the restart files and distributes them to each ensemble member’s input folders for the next forecast cycle.
+
+### 📌 RTPS Inflation Support
+
+To apply **RTPS (Relaxation to Prior Spread)** inflation, use the alternative script `analysis_to_restarts_inflation.py` inside `postprocess.sh`, instead of the default `analysis_to_restarts.py`.
+
+---
+
 ## 🚀 Quick Start
 
 1. **Set simulation period and ensemble size:**

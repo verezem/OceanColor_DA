@@ -21,11 +21,10 @@ d=${date:6:2}
 cd /scratch/ulg/mast/pverezem/DA_online/analysis/
 for ii in {01..20} ; do
     ncks -A -v RRS412,RRS443,RRS490,RRS510,RRS555,RRS670 ${date}_Ea_C0${ii}.nc C0${ii}_Ea_${date}_reflectances.nc
-    ncks -A -v BCDI,BCEM,BCFL,BPOC ${date}_Ea_C0${ii}.nc C0${ii}_Ea_${date}_before.nc
-    ncks -A -v NCDI,NCEM,NCFL,NPOC ${date}_Ea_C0${ii}.nc C0${ii}_Ea_${date}_now.nc
+    ncks -A -v BCDI,BCEM,BCFL,BPOC,BMES,BMIC,BGEL ${date}_Ea_C0${ii}.nc C0${ii}_Ea_${date}_before.nc
 done
 
-rm yo_* xf_*
+rm -rf C0*_before.nc C*_reflectances.nc
 
 cd ../
 
