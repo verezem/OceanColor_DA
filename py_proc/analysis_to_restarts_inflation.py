@@ -1,6 +1,6 @@
-import xarray as xr
-import numpy as np
 import os
+import numpy as np
+import xarray as xr
 import sys
 
 def apply_rtps(analysis, forecast, alpha=1.0):
@@ -13,41 +13,56 @@ def apply_rtps(analysis, forecast, alpha=1.0):
     std_a = np.nanstd(analysis, axis=0)
     std_f = np.nanstd(forecast, axis=0)
 
-    std_a = np.where(std_a == 0, 1e-12, std_a)  # prevent division by zero
+    std_a = np.where(std_a == 0, 1e-12, std_a)
     inflated = mean_a + alpha * (std_f / std_a) * (analysis - mean_a)
     return inflated
 
-def main(use_rtps=False, rtps_alpha=1.0):
-    EN_SIZE = 20
-    date = os.environ.get("ASSIM_DATE")
-    if date is None:
-        print("Please set ASSIM_DATE as an environment variable")
-        sys.exit(1)
+# --- CONFIG ---
+mydir = str(sys.argv[1])
+date = str(sys.argv[2])
+outdir = mydir
+mems = [f"{i:02d}" for i in range(1, 21)]
+alpha = float(os.getenv("RTPS_ALPHA", "0.8"))
 
-    analysis_files = [f"analysis/C{str(i+1).zfill(3)}_y{date[:4]}m{date[4:6]}d{date[6:]}.nc" for i in range(EN_SIZE)]
-    forecast_files = [f"current_day/C{str(i+1).zfill(3)}_y{date[:4]}m{date[4:6]}d{date[6:]}.nc" for i in range(EN_SIZE)]
+# Variables
+BEFORE_VARS = ['BCDI', 'BCEM', 'BCFL', 'BPOC', 'BMES', 'BMIC', 'BGEL']
+TRB_VARS = ['TRBCDI', 'TRBCEM', 'TRBCFL', 'TRBPOC', 'TRBMES', 'TRBMIC', 'TRBGEL']
+TRN_VARS = ['TRNCDI', 'TRNCEM', 'TRNCFL', 'TRNPOC', 'TRNMES', 'TRNMIC', 'TRNGEL']
 
-    analysis_ens = [xr.open_dataset(f) for f in analysis_files]
-    forecast_ens = [xr.open_dataset(f) for f in forecast_files]
+# --- Load ensembles ---
+before_ens = []
+forecast_ens = []
 
-    variables = ['TRBCDI', 'TRBCEM', 'TRBCFL', 'TRBPOC', 'TRNCDI', 'TRNCEM', 'TRNCFL', 'TRNPOC']  # update as needed
+for ii in mems:
+    beffile = os.path.join(mydir, f'analysis/C0{ii}_Ea_{date}_before.nc')
+    restfile = os.path.join(mydir, f'forecast_restarts/PC0{ii}_y{date[:4]}m{date[4:6]}d{date[6:]}.nc')
+    before_ens.append(xr.open_dataset(beffile))
+    forecast_ens.append(xr.open_dataset(restfile))
 
-    for var in variables:
-        a_stack = np.stack([ds[var].values for ds in analysis_ens])
-        f_stack = np.stack([ds[var].values for ds in forecast_ens])
+# --- Apply RTPS ---
+inflated = {}
 
-        if use_rtps:
-            a_stack = apply_rtps(a_stack, f_stack, alpha=rtps_alpha)
+for var_bef, var_rest in zip(BEFORE_VARS, TRB_VARS):  # Only apply to background variables
+    analysis_stack = np.stack([ds[var_bef].values for ds in before_ens])
+    forecast_stack = np.stack([ds[var_rest].values for ds in forecast_ens])
+    inflated[var_bef] = apply_rtps(analysis_stack, forecast_stack, alpha)
 
-        for i in range(EN_SIZE):
-            analysis_ens[i][var].values = a_stack[i]
+# --- Write mixed outputs ---
+for idx, ii in enumerate(mems):
+    restdat = forecast_ens[idx]
+    befdat = before_ens[idx]
+    restdat_updated = restdat.copy()
 
-    for i in range(EN_SIZE):
-        outname = f"analysis_restarts/PC{str(i+1).zfill(3)}_y{date[:4]}m{date[4:6]}d{date[6:]}.nc"
-        analysis_ens[i].to_netcdf(outname)
+    # Mixed: 50% inflated background + 50% forecast
+    for var_bef, var_rest, newname in zip(BEFORE_VARS, TRB_VARS, TRB_VARS):
+        mixed = 0.5 * inflated[var_bef][idx] + 0.5 * restdat[var_rest].values
+        restdat_updated[newname] = (restdat[var_rest].dims, mixed)
 
-if __name__ == "__main__":
-    USE_RTPS = os.getenv("USE_RTPS", "False") == "True"
-    ALPHA = float(os.getenv("RTPS_ALPHA", "0.8"))
-    main(use_rtps=USE_RTPS, rtps_alpha=ALPHA)
+    # NOW state: 100% inflated analysis
+    for var_bef, newname in zip(BEFORE_VARS, TRN_VARS):
+        restdat_updated[newname] = (restdat[newname].dims, inflated[var_bef][idx])
+
+    outname = os.path.join(mydir, f'analysis_restarts/PC0{ii}_analysed_y{date[:4]}m{date[4:6]}d{date[6:]}.nc')
+    restdat_updated.to_netcdf(outname, format='NETCDF4', engine='netcdf4')
+    print(f"✅ Updated and saved {outname}")
 
